@@ -44,6 +44,15 @@ export default class ExpandSelectPlugin extends Plugin {
 		console.log('->: ' + editor.getLine(cursor.line)[cursor.ch]);
 
 		const selection = editor.getSelection();
+		const link = this.getLink(editor, cursor);
+
+		if (link) {
+			editor.setSelection(link.from, link.to);
+			const selection_new = editor.getSelection();
+			if (selection !== selection_new)
+				return;
+		}
+
 		if (selection) {
 
 			const quoteRange = this.getQuoteRange(editor, cursor);
@@ -79,6 +88,44 @@ export default class ExpandSelectPlugin extends Plugin {
 			return;
 		}
 		editor.setSelection(wordRange?.from, wordRange?.to);
+	}
+
+	getLink(editor: Editor, cursor: { line: number; ch: number }) {
+		const mid_sentence = `,;`;
+		const terminators = `${mid_sentence} `;
+		const selection = editor.getSelection();
+
+		const line_text = editor.getLine(cursor.line);
+		const length = line_text.length;
+
+		const abs_start = cursor.ch - selection.length;
+		const abs_end = cursor.ch;
+
+		let start = abs_start;
+		let end = abs_end;
+
+		while (start > 0 && !terminators.includes(line_text[start - 1])) {
+			start--;
+		}
+
+		while (end < length && !terminators.includes(line_text[end])) {
+			end++;
+		}
+
+		let word = '';
+		for (let i = start; i < end; i++) {
+			word += line_text.charAt(i);
+		}
+
+		return this.isURL(word) ? {
+			from: { line: cursor.line, ch: start },
+			to: { line: cursor.line, ch: end },
+		} : null;
+	}
+
+	isURL(word: string): boolean {
+		const urlRegex = /^(https?:\/\/[^\s\/$.?#].\S*)$/i;
+		return urlRegex.test(word.trim());
 	}
 
 	getQuoteRange(editor: Editor, cursor: { line: number; ch: number }) {
