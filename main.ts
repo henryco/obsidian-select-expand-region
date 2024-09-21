@@ -213,7 +213,6 @@ export default class ExpandSelectPlugin extends Plugin {
 			};
 		}
 
-		console.log('quote not found');
 		return null;
 	}
 
@@ -258,7 +257,6 @@ export default class ExpandSelectPlugin extends Plugin {
 		}
 
 		if (mid_sentence.includes(line_text[cursor.ch])) {
-			console.log('Q');
 			if (mid_sentence.includes(line_text[abs_start - 1])) {
 				let start = abs_start - 1;
 				while (start > 0 && !terminators.includes(line_text[start - 1])) {
@@ -312,7 +310,14 @@ export default class ExpandSelectPlugin extends Plugin {
 			end++;
 		}
 
-		return { from: { line: cursor.line, ch: start }, to: { line: cursor.line, ch: end } };
+		while (`${line_text[start]}`.trim() === '' && start < end && start < length) {
+			start++;
+		}
+
+		return {
+			from: { line: cursor.line, ch: start },
+			to: { line: cursor.line, ch: end }
+		};
 	}
 
 	async loadSettings() {
