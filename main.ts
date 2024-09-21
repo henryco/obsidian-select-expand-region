@@ -1,7 +1,7 @@
 import {App, Editor, Modifier, Plugin, PluginSettingTab, Setting} from 'obsidian';
 
 interface ExpandSelectPluginSettings {
-	hotkey: string;
+	hotkey?: string;
 	quote_op: string;
 	quote_ed: string;
 	mid_term: string;
@@ -10,7 +10,7 @@ interface ExpandSelectPluginSettings {
 }
 
 const DEFAULT_SETTINGS: ExpandSelectPluginSettings = {
-	hotkey: 'Alt+E',
+	hotkey: undefined,
 	quote_op: `"\`'*|$%~[<({`,
 	quote_ed: `"\`'*|$%~]>)}`,
 	mid_term: `,;`,
@@ -46,16 +46,21 @@ export default class ExpandSelectPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
+		let extra: any = {};
+		if (this.settings.hotkey) {
+			extra = {
+				hotkeys: [{
+					modifiers: this.parseModifiers(this.settings.hotkey),
+					key: this.parseKey(this.settings.hotkey),
+				}]
+			}
+		}
+
 		this.addCommand({
 			id: "select-expand-region",
 			name: "Select & Expand Region",
 			editorCallback: (editor) => this.selectExpandRegion(editor),
-			hotkeys: [
-				{
-					modifiers: this.parseModifiers(this.settings.hotkey),
-					key: this.parseKey(this.settings.hotkey),
-				},
-			],
+			...extra
 		});
 
 		this.addSettingTab(new ExpandSelectSettingTab(this.app, this));
@@ -454,7 +459,10 @@ class ExpandSelectSettingTab extends PluginSettingTab {
 	display(): void {
 		const {containerEl} = this;
 		containerEl.empty();
-		containerEl.createEl("h2", { text: "Select & Expand Region Settings" });
+
+		new Setting(containerEl)
+			.setName("Select & Expand Region Settings")
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName("Hotkey (Plugin restart required)")
@@ -462,7 +470,7 @@ class ExpandSelectSettingTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setPlaceholder("Enter hotkey")
-					.setValue(this.plugin.settings.hotkey)
+					.setValue(this.plugin.settings.hotkey ?? '')
 					.onChange(async (value) => {
 						this.plugin.settings.hotkey = value;
 						await this.plugin.saveSettings();
