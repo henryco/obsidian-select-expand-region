@@ -153,22 +153,31 @@ export default class ExpandSelectPlugin extends Plugin {
 			};
 		}
 
+		console.log('quote not found');
 		return null;
 	}
 
 	getSentenceRange(editor: Editor, cursor: { line: number; ch: number }) {
-		const lineText = editor.getLine(cursor.line);
-		const length = lineText.length;
+		const sentence_terminators = `.,?!`;
+
+		const selection = editor.getSelection();
+
+		const line_text = editor.getLine(cursor.line);
+		const length = line_text.length;
+
+		const abs_start = cursor.ch - selection.length;
+		const abs_end = cursor.ch;
+
+		let start = abs_start;
+		let end = abs_end;
 
 		// Find the start of the sentence
-		let start = cursor.ch;
-		while (start > 0 && !/[.,?!]/.test(lineText[start - 1])) {
+		while (start > 0 && !sentence_terminators.includes(line_text[start - 1])) {
 			start--;
 		}
 
 		// Find the end of the sentence
-		let end = cursor.ch;
-		while (end < length && !/[.,?!]/.test(lineText[end])) {
+		while (end < length && !sentence_terminators.includes(line_text[end])) {
 			end++;
 		}
 
