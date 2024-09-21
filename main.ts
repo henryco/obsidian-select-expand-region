@@ -424,5 +424,64 @@ class ExpandSelectSettingTab extends PluginSettingTab {
 					})
 			);
 
+		new Setting(containerEl)
+			.setName("Quote op")
+			.setDesc("")
+			.addText((text) =>
+				text
+					.setValue(this.plugin.settings.quote_op)
+					.onChange(async (value) => {
+						this.plugin.settings.quote_op = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Quote ed")
+			.setDesc("")
+			.addText((text) =>
+				text
+					.setValue(this.plugin.settings.quote_ed)
+					.onChange(async (value) => {
+						this.plugin.settings.quote_ed = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Mid sentence terminators")
+			.setDesc("")
+			.addText((text) =>
+				text
+					.setValue(this.plugin.settings.mid_term)
+					.onChange(async (value) => {
+						this.plugin.settings.mid_term = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Sentence terminators")
+			.setDesc("")
+			.addText((text) =>
+				text
+					.setValue(this.plugin.settings.end_term)
+					.onChange(async (value) => {
+						this.plugin.settings.end_term = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("URL Regex")
+			.setDesc("")
+			.addText((text) =>
+				text
+					.setValue(this.plugin.settings.url_regex)
+					.onChange(async (value) => {
+						this.plugin.settings.url_regex = value;
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }
