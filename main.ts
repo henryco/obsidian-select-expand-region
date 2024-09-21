@@ -128,7 +128,6 @@ export default class ExpandSelectPlugin extends Plugin {
 			}
 		}
 
-
 		let start = abs_start;
 		let end = abs_end;
 
@@ -158,26 +157,97 @@ export default class ExpandSelectPlugin extends Plugin {
 	}
 
 	getSentenceRange(editor: Editor, cursor: { line: number; ch: number }) {
-		const sentence_terminators = `.,?!`;
+		const mid_sentence = `,;`;
+		const sentence_terminators = `.?!`;
+
+		const terminators = `${mid_sentence}${sentence_terminators}`;
 
 		const selection = editor.getSelection();
-
 		const line_text = editor.getLine(cursor.line);
 		const length = line_text.length;
 
 		const abs_start = cursor.ch - selection.length;
 		const abs_end = cursor.ch;
 
+		if (sentence_terminators.includes(line_text[cursor.ch])) {
+			if (abs_start !== 0 && !terminators.includes(line_text[abs_start - 1])) {
+				let start = abs_start - 1;
+				while (start > 0 && !terminators.includes(line_text[start - 1])) {
+					start--;
+				}
+				return {
+					from: {line: cursor.line, ch: start},
+					to: {line: cursor.line, ch: abs_end}
+				};
+			}
+			if (mid_sentence.includes(line_text[abs_start - 1])) {
+				let start = abs_start - 1;
+				while (start > 0 && !terminators.includes(line_text[start - 1])) {
+					start--;
+				}
+				return {
+					from: {line: cursor.line, ch: start},
+					to: {line: cursor.line, ch: abs_end}
+				};
+			}
+			return {
+				from: { line: cursor.line, ch: abs_start },
+				to: { line: cursor.line, ch: abs_end + 1 }
+			};
+		}
+
+		if (mid_sentence.includes(line_text[cursor.ch])) {
+			console.log('Q');
+			if (mid_sentence.includes(line_text[abs_start - 1])) {
+				let start = abs_start - 1;
+				while (start > 0 && !terminators.includes(line_text[start - 1])) {
+					start--;
+				}
+				return {
+					from: { line: cursor.line, ch: start },
+					to: { line: cursor.line, ch: abs_end }
+				};
+			}
+
+			if (abs_start === 0 || sentence_terminators.includes(line_text[abs_start - 1])) {
+				return {
+					from: { line: cursor.line, ch: abs_start },
+					to: { line: cursor.line, ch: abs_end + 1 }
+				};
+			}
+
+			let start = abs_start;
+			while (start > 0 && !terminators.includes(line_text[start - 1])) {
+				start--;
+			}
+
+			if (start <= 0 || terminators.includes(line_text[start])) {
+				return {
+					from: { line: cursor.line, ch: start },
+					to: { line: cursor.line, ch: abs_end + 1 }
+				};
+			}
+			return {
+				from: { line: cursor.line, ch: start },
+				to: { line: cursor.line, ch: abs_end }
+			};
+		}
+
+		if (
+			(abs_start <= 0 || sentence_terminators.includes(line_text[abs_start - 1])) &&
+			(abs_end >= length || sentence_terminators.includes(line_text[abs_end - 1]))
+		) {
+			return { from: { line: cursor.line, ch: 0 }, to: { line: cursor.line, ch: length } };
+		}
+
 		let start = abs_start;
 		let end = abs_end;
 
-		// Find the start of the sentence
-		while (start > 0 && !sentence_terminators.includes(line_text[start - 1])) {
+		while (start > 0 && !terminators.includes(line_text[start - 1])) {
 			start--;
 		}
 
-		// Find the end of the sentence
-		while (end < length && !sentence_terminators.includes(line_text[end])) {
+		while (end < length && !terminators.includes(line_text[end])) {
 			end++;
 		}
 
