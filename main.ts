@@ -230,11 +230,22 @@ export default class ExpandSelectPlugin extends Plugin {
 		const abs_end = cursor.ch;
 
 		if (sentence_terminators.includes(line_text[cursor.ch])) {
+			if (this.firstWordInSentence(line_text, abs_start - 1, sentence_terminators)) {
+				return {
+					from: { line: cursor.line, ch: abs_start },
+					to: { line: cursor.line, ch: abs_end + 1 }
+				};
+			}
 			if (abs_start !== 0 && !terminators.includes(line_text[abs_start - 1])) {
 				let start = abs_start - 1;
-				while (start > 0 && !terminators.includes(line_text[start - 1])) {
+				while (start > 0 && !sentence_terminators.includes(line_text[start - 1])) {
 					start--;
 				}
+
+				while (`${line_text[start]}`.trim() === '' && start < abs_end && start < length) {
+					start++;
+				}
+
 				return {
 					from: {line: cursor.line, ch: start},
 					to: {line: cursor.line, ch: abs_end}
@@ -276,27 +287,29 @@ export default class ExpandSelectPlugin extends Plugin {
 			}
 
 			let start = abs_start;
+
 			while (start > 0 && !terminators.includes(line_text[start - 1])) {
 				start--;
 			}
 
-			if (start <= 0 || terminators.includes(line_text[start])) {
-				return {
-					from: { line: cursor.line, ch: start },
-					to: { line: cursor.line, ch: abs_end + 1 }
-				};
+			while (`${line_text[start]}`.trim() === '' && start < abs_end && start < length) {
+				start++;
 			}
+
 			return {
 				from: { line: cursor.line, ch: start },
-				to: { line: cursor.line, ch: abs_end }
+				to: { line: cursor.line, ch: abs_end + 1 }
 			};
 		}
 
 		if (
-			(abs_start <= 0 || sentence_terminators.includes(line_text[abs_start - 1])) &&
+			(abs_start <= 0 || this.firstWordInSentence(line_text, abs_start - 1, sentence_terminators) ) &&
 			(abs_end >= length || sentence_terminators.includes(line_text[abs_end - 1]))
 		) {
-			return { from: { line: cursor.line, ch: 0 }, to: { line: cursor.line, ch: length } };
+			return {
+				from: { line: cursor.line, ch: 0 },
+				to: { line: cursor.line, ch: length }
+			};
 		}
 
 		let start = abs_start;
@@ -318,6 +331,25 @@ export default class ExpandSelectPlugin extends Plugin {
 			from: { line: cursor.line, ch: start },
 			to: { line: cursor.line, ch: end }
 		};
+	}
+
+	firstWordInSentence(line_text: string, pos: number, terminators: string) {
+		let n = pos;
+
+		while (n > 0) {
+			if (terminators.includes(line_text[n])) {
+				return true;
+			}
+
+			if (`${line_text[n]}`.trim() === '') {
+				n--;
+				continue;
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 
 	async loadSettings() {
