@@ -62,8 +62,22 @@ export default class ExpandSelectPlugin extends Plugin {
 		}
 
 		const wordRange = editor.wordAt({ line: cursor.line, ch: cursor.ch });
-		if (!wordRange)
+		if (!wordRange) {
+
+			const quoteRange = this.getQuoteRange(editor, cursor);
+			if (quoteRange) {
+				editor.setSelection(quoteRange.from, quoteRange.to);
+				return;
+			}
+
+			const sentenceRange = this.getSentenceRange(editor, cursor);
+			if (sentenceRange) {
+				editor.setSelection(sentenceRange.from, sentenceRange.to);
+				return;
+			}
+
 			return;
+		}
 		editor.setSelection(wordRange?.from, wordRange?.to);
 	}
 
