@@ -3,33 +3,45 @@ import { App, Editor, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 interface ExpandSelectPluginSettings {
 	hotkey: string;
+	quote_op: string;
+	quote_ed: string;
+	mid_term: string;
+	end_term: string;
+	url_regex: string;
 }
 
 const DEFAULT_SETTINGS: ExpandSelectPluginSettings = {
-	hotkey: 'Alt+E'
+	hotkey: 'Alt+E',
+	quote_op: `"\`'*|$%~[<({`,
+	quote_ed: `"\`'*|$%~]>)}`,
+	mid_term: `,;`,
+	end_term: `.?!`,
+	url_regex: '^(https?:\\/\\/[^\\s\\/$.?#].\\S*)$',
 }
 
 export default class ExpandSelectPlugin extends Plugin {
 	settings: ExpandSelectPluginSettings;
 
 	get_quote_op(): string {
-		return `"\`'*|$%~[<({`;
+		return this.settings.quote_op;
 	}
 
 	get_quote_ed(): string {
-		return `"\`'*|$%~]>)}`;
+		return this.settings.quote_ed;
 	}
 
 	get_mid_term(): string {
-		return `,;`;
+		return this.settings.mid_term;
 	}
 
 	get_end_term(): string {
-		return `.?!`;
+		return this.settings.end_term;
 	}
 
 	get_url_regex(): string[] {
-		return ['^(https?:\\/\\/[^\\s\\/$.?#].\\S*)$'];
+		return [
+			this.settings.url_regex
+		];
 	}
 
 	async onload() {
