@@ -1,6 +1,5 @@
 import {App, Editor, Modifier, Plugin, PluginSettingTab, Setting} from 'obsidian';
 
-
 interface ExpandSelectPluginSettings {
 	hotkey: string;
 	quote_op: string;
@@ -47,22 +46,18 @@ export default class ExpandSelectPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// Register a command that will get the cursor position when the hotkey is pressed
 		this.addCommand({
 			id: "select-expand-region",
 			name: "Select & Expand Region",
 			editorCallback: (editor) => this.selectExpandRegion(editor),
 			hotkeys: [
 				{
-					// modifiers: ["Alt"],
-					// key: "E",
 					modifiers: this.parseModifiers(this.settings.hotkey),
 					key: this.parseKey(this.settings.hotkey),
 				},
 			],
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new ExpandSelectSettingTab(this.app, this));
 	}
 
@@ -87,6 +82,12 @@ export default class ExpandSelectPlugin extends Plugin {
 		const cursor = editor.getCursor();
 		const selection = editor.getSelection();
 		const link = this.getLink(editor, cursor);
+		const line_range = this.getLineRange(editor, cursor);
+
+		if (line_range) {
+			editor.setSelection(line_range.from, line_range.to);
+			return;
+		}
 
 		if (link) {
 			editor.setSelection(link.from, link.to);
@@ -259,6 +260,23 @@ export default class ExpandSelectPlugin extends Plugin {
 				from: { line: cursor.line, ch: start },
 				to: { line: cursor.line, ch: end }
 			};
+		}
+
+		return null;
+	}
+
+	getLineRange(editor: Editor, cursor: { line: number; ch: number }) {
+		const from_cursor = editor.getCursor('from');
+		const to_cursor = editor.getCursor('to');
+		const selection = editor.getSelection();
+
+		const line_text = editor.getLine(cursor.line);
+
+		if (selection.length >= line_text.length) {
+			return {
+				from: {line: Math.max(0, from_cursor.line - 1), ch: 0},
+				to: {line: to_cursor.line + 2, ch: editor.getLine(to_cursor.line + 2).length}
+			}
 		}
 
 		return null;
