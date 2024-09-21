@@ -12,6 +12,26 @@ const DEFAULT_SETTINGS: ExpandSelectPluginSettings = {
 export default class ExpandSelectPlugin extends Plugin {
 	settings: ExpandSelectPluginSettings;
 
+	get_quote_op(): string {
+		return `"\`'*|$%~[<({`;
+	}
+
+	get_quote_ed(): string {
+		return `"\`'*|$%~]>)}`;
+	}
+
+	get_mid_term(): string {
+		return `,;`;
+	}
+
+	get_end_term(): string {
+		return `.?!`;
+	}
+
+	get_url_regex(): string[] {
+		return ['^(https?:\\/\\/[^\\s\\/$.?#].\\S*)$'];
+	}
+
 	async onload() {
 		await this.loadSettings();
 
@@ -40,9 +60,6 @@ export default class ExpandSelectPlugin extends Plugin {
 			return;
 
 		const cursor = editor.getCursor();
-
-		console.log('->: ' + editor.getLine(cursor.line)[cursor.ch]);
-
 		const selection = editor.getSelection();
 		const link = this.getLink(editor, cursor);
 
@@ -91,8 +108,9 @@ export default class ExpandSelectPlugin extends Plugin {
 	}
 
 	getLink(editor: Editor, cursor: { line: number; ch: number }) {
-		const mid_sentence = `,;`;
+		const mid_sentence = this.get_mid_term();
 		const terminators = `${mid_sentence} `;
+
 		const selection = editor.getSelection();
 
 		const line_text = editor.getLine(cursor.line);
@@ -124,13 +142,22 @@ export default class ExpandSelectPlugin extends Plugin {
 	}
 
 	isURL(word: string): boolean {
-		const urlRegex = /^(https?:\/\/[^\s\/$.?#].\S*)$/i;
-		return urlRegex.test(word.trim());
+		const exp = this.get_url_regex();
+		const w = word.trim();
+
+		for (let s of exp) {
+			if (new RegExp(s, 'i').test(w))
+				return true;
+		}
+
+		return false;
+		// const urlRegex = /^(https?:\/\/[^\s\/$.?#].\S*)$/i;
+		// return urlRegex.test(word.trim());
 	}
 
 	getQuoteRange(editor: Editor, cursor: { line: number; ch: number }) {
-		const quote_op = `"\`'*|$%~[<({`;
-		const quote_ed = `"\`'*|$%~]>)}`;
+		const quote_op = this.get_quote_op();
+		const quote_ed = this.get_quote_ed();
 
 		const selection = editor.getSelection();
 
@@ -139,8 +166,6 @@ export default class ExpandSelectPlugin extends Plugin {
 
 		const abs_start = cursor.ch - selection.length;
 		const abs_end = cursor.ch;
-
-		console.log('selection: ' + selection);
 
 		// check quote end bounding
 		if (quote_ed.includes(line_text[cursor.ch])) {
@@ -217,8 +242,8 @@ export default class ExpandSelectPlugin extends Plugin {
 	}
 
 	getSentenceRange(editor: Editor, cursor: { line: number; ch: number }) {
-		const mid_sentence = `,;`;
-		const sentence_terminators = `.?!`;
+		const mid_sentence = this.get_mid_term();
+		const sentence_terminators = this.get_end_term();
 
 		const terminators = `${mid_sentence}${sentence_terminators}`;
 
