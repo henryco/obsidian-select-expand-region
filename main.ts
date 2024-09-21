@@ -401,7 +401,6 @@ export default class ExpandSelectPlugin extends Plugin {
 		let n = pos;
 
 		while (n > 0) {
-			console.log('test: ' + line_text[n]);
 			if (terminators.includes(line_text[n])) {
 				return true;
 			}
