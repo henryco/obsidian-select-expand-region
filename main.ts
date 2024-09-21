@@ -192,7 +192,6 @@ export default class ExpandSelectPlugin extends Plugin {
 		const abs_start = cursor.ch - selection.length;
 		const abs_end = cursor.ch;
 
-		// check quote end bounding
 		if (quote_ed.includes(line_text[cursor.ch])) {
 			const index = quote_ed.indexOf(line_text[cursor.ch]);
 			const op_char = quote_op.at(index) ?? '';
@@ -219,7 +218,6 @@ export default class ExpandSelectPlugin extends Plugin {
 			};
 		}
 
-		// check quote start bounding
 		if (quote_op.includes(line_text[cursor.ch])) {
 			const index = quote_op.indexOf(line_text[cursor.ch]);
 			const ed_char = quote_ed.at(index) ?? '';
@@ -318,6 +316,22 @@ export default class ExpandSelectPlugin extends Plugin {
 		}
 
 		if (mid_sentence.includes(line_text[cursor.ch])) {
+			if (!this.firstWordInSentence(line_text, abs_start - 1, terminators)) {
+				let start = abs_start;
+				while (start > 0 && !terminators.includes(line_text[start - 1])) {
+					start--;
+				}
+
+				while (`${line_text[start]}`.trim() === '' && start < abs_end && start < length) {
+					start++;
+				}
+
+				return {
+					from: { line: cursor.line, ch: start },
+					to: { line: cursor.line, ch: abs_end }
+				};
+			}
+
 			if (mid_sentence.includes(line_text[abs_start - 1])) {
 				let start = abs_start - 1;
 				while (start > 0 && !terminators.includes(line_text[start - 1])) {
@@ -387,6 +401,7 @@ export default class ExpandSelectPlugin extends Plugin {
 		let n = pos;
 
 		while (n > 0) {
+			console.log('test: ' + line_text[n]);
 			if (terminators.includes(line_text[n])) {
 				return true;
 			}
