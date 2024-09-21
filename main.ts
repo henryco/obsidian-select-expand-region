@@ -1,4 +1,4 @@
-import { App, Editor, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import {App, Editor, Modifier, Plugin, PluginSettingTab, Setting} from 'obsidian';
 
 
 interface ExpandSelectPluginSettings {
@@ -54,8 +54,10 @@ export default class ExpandSelectPlugin extends Plugin {
 			editorCallback: (editor) => this.selectExpandRegion(editor),
 			hotkeys: [
 				{
-					modifiers: ["Alt"],
-					key: "E",
+					// modifiers: ["Alt"],
+					// key: "E",
+					modifiers: this.parseModifiers(this.settings.hotkey),
+					key: this.parseKey(this.settings.hotkey),
 				},
 			],
 		});
@@ -65,6 +67,17 @@ export default class ExpandSelectPlugin extends Plugin {
 	}
 
 	onunload() {
+	}
+
+	parseModifiers(hotkey: string): Modifier[] {
+		const parts = hotkey.split('+');
+		// @ts-ignore
+		return parts.slice(0, parts.length - 1);
+	}
+
+	parseKey(hotkey: string): string {
+		const parts = hotkey.split('+');
+		return parts[parts.length - 1];  // Last part is the key
 	}
 
 	selectExpandRegion(editor: Editor) {
@@ -412,8 +425,8 @@ class ExpandSelectSettingTab extends PluginSettingTab {
 		containerEl.createEl("h2", { text: "Select & Expand Region Settings" });
 
 		new Setting(containerEl)
-			.setName("Hotkey")
-			.setDesc("Set the hotkey to trigger selection")
+			.setName("Hotkey (Plugin restart required)")
+			.setDesc("Set the hotkey to trigger selection (requires restart)")
 			.addText((text) =>
 				text
 					.setPlaceholder("Enter hotkey")
