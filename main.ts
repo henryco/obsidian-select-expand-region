@@ -68,23 +68,23 @@ export default class ExpandSelectPlugin extends Plugin {
 	}
 
 	getQuoteRange(editor: Editor, cursor: { line: number; ch: number }) {
-		const selection = editor.getSelection();
-		const line_text = editor.getLine(cursor.line);
-		const length = line_text.length;
-
-		console.log('selection: ' + selection);
-
 		const quote_op = `"\`'*|$%~[<({`;
 		const quote_ed = `"\`'*|$%~]>)}`;
 
-		// check quote bounding
-		if (quote_ed.includes(line_text[cursor.ch])) {
+		const selection = editor.getSelection();
 
+		const line_text = editor.getLine(cursor.line);
+		const length = line_text.length;
+
+		const abs_start = cursor.ch - selection.length;
+		const abs_end = cursor.ch;
+
+		console.log('selection: ' + selection);
+
+		// check quote end bounding
+		if (quote_ed.includes(line_text[cursor.ch])) {
 			const index = quote_ed.indexOf(line_text[cursor.ch]);
 			const op_char = quote_op.at(index) ?? '';
-
-			const abs_start = cursor.ch - selection.length;
-			const abs_end = cursor.ch;
 
 			let start = abs_start;
 			let end = abs_end;
@@ -108,9 +108,29 @@ export default class ExpandSelectPlugin extends Plugin {
 			};
 		}
 
+		// check quote start bounding
+		if (quote_op.includes(line_text[cursor.ch])) {
+			const index = quote_op.indexOf(line_text[cursor.ch]);
+			const ed_char = quote_ed.at(index) ?? '';
 
-		let start = cursor.ch - selection.length;
-		let end = cursor.ch;
+			let start = abs_start;
+			let end = abs_end;
+
+			while (end < length && !ed_char.includes(line_text[end])) {
+				end++;
+			}
+
+			if (ed_char.includes(line_text[end])) {
+				return {
+					from: { line: cursor.line, ch: start },
+					to: { line: cursor.line, ch: end + 1 }
+				};
+			}
+		}
+
+
+		let start = abs_start;
+		let end = abs_end;
 
 		while (end < length && !quote_ed.includes(line_text[end])) {
 			end++;
