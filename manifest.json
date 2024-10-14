@@ -1,11 +1,14 @@
 {
 	"id": "select-expand-region-plugin",
 	"name": "Select & Expand text region",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "0.15.0",
 	"description": "Select & Expand text region.",
 	"author": "henryco",
 	"authorUrl": "https://github.com/henryco",
-	"fundingUrl": "https://github.com/henryco",
+	"fundingUrl": {
+        "GitHub Sponsor": "https://github.com/sponsors/henryco",
+        "Buy Me a Coffee": "https://buymeacoffee.com/henrycoxd"
+    },
 	"isDesktopOnly": true
 }
